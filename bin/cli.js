@@ -410,7 +410,7 @@ async function runInit() {
 
   if (answers.auditrc) {
     const config = `# tryappstack-audit config
-# Docs: https://github.com/Dushyant-Khoda/tryappstack-audit
+# Docs: https://github.com/Dushyant-Khoda/tryappstack-audit  (TryAppStack)
 
 # Strict mode — fail if below threshold
 # STRICT_MODE=true
@@ -680,7 +680,7 @@ function printFooter(opts) {
   if (Math.random() < 0.2) {
     console.log('');
     console.log(chalk.dim('  ⭐ If this saved you time, a star means a lot →'));
-    console.log(chalk.dim('  github.com/Dushyant-Khoda/tryappstack-audit'));
+    console.log(chalk.dim('  github.com/Dushyant-Khoda/tryappstack-audit  — TryAppStack'));
   }
   console.log('');
 }

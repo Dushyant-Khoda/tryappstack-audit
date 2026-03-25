@@ -390,7 +390,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add audit modules, submit fixe
 
 ## License
 
-MIT — [Dushyant Khoda](https://github.com/Dushyant-Khoda)
+MIT — [TryAppStack](https://github.com/Dushyant-Khoda)
 
 ---
 

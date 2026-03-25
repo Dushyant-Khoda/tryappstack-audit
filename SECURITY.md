@@ -15,7 +15,7 @@ If you discover a security vulnerability in `tryappstack-audit`, please report i
 
 ### How to Report
 
-Email: Contact via [GitHub](https://github.com/Dushyant-Khoda) directly or open a [private security advisory](https://github.com/Dushyant-Khoda/tryappstack-audit/security/advisories/new).
+Email: Contact via [GitHub](https://github.com/Dushyant-Khoda/tryappstack-audit) directly or open a [private security advisory](https://github.com/Dushyant-Khoda/tryappstack-audit/security/advisories/new).
 
 ### What to Include
 
