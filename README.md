@@ -2,7 +2,7 @@
 
 <img src="https://res.cloudinary.com/dsidb5jqw/image/upload/v1772630287/App_logo_light_upvroj.png" width="200" />
 
-# tryappstack-audit
+# TryAppStack Audit
 
 ### Code audit + AI assistant for JS/TS projects — runs in your terminal, no IDE required
 
