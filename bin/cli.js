@@ -350,7 +350,7 @@ async function runAudit(directory, opts) {
   }
 
   // Build args for bash engine
-  const args = [path.join(LIB, 'engine.sh')];
+  const args = [path.join(LIB, 'core', 'engine.sh')];
   args.push(dir);
 
   if (opts.output) args.push('-o', opts.output);
@@ -366,14 +366,18 @@ async function runAudit(directory, opts) {
 
   // Module flags
   const modFlags = ['loc','unusedPackages','deadCode','structure','bundle','deps',
-    'complexity','security','performance','bestPractices','alternatives','env','gitHealth'];
+    'complexity','security','performance','bestPractices','alternatives','env','gitHealth',
+    'tests','a11y'];
   const modNames = ['loc','unused-packages','dead-code','structure','bundle','deps',
-    'complexity','security','performance','best-practices','alternatives','env','git-health'];
+    'complexity','security','performance','best-practices','alternatives','env','git-health',
+    'tests','a11y'];
 
   let hasSpecific = false;
   modFlags.forEach((f, i) => {
     if (opts[f]) { args.push('--' + modNames[i]); hasSpecific = true; }
   });
+  if (opts.docs) { args.push('--api-docs'); hasSpecific = true; }
+  if (opts.json) args.push('--json');
 
   // Spawn bash engine
   const bashCmd = hasBash ? 'bash' : 'wsl';
@@ -389,11 +393,15 @@ async function runAudit(directory, opts) {
     }
   });
 
+  child.on('error', (err) => {
+    console.log(chalk.red('\n  ✗ Failed to start bash: ' + err.message + '\n'));
+    process.exit(1);
+  });
   child.on('close', (code) => {
     if (!opts.prePush && code === 0) {
       printFooter(opts);
     }
-    process.exit(code || 0);
+    process.exit(code ?? 1);
   });
 }
 
@@ -523,12 +531,16 @@ async function runAISetup() {
 // ── Fix ──
 function runFix() {
   printBanner();
-  const bashArgs = [path.join(LIB, 'engine.sh'), '.', '--fix-mode'];
+  const bashArgs = [path.join(LIB, 'core', 'engine.sh'), '.', '--fix-mode'];
   const child = spawn('bash', bashArgs, {
     stdio: 'inherit',
     env: { ...process.env, TRYAPPSTACK_LIB: LIB }
   });
-  child.on('close', (code) => process.exit(code || 0));
+  child.on('error', (err) => {
+    console.log(chalk.red('\n  ✗ Failed to start bash: ' + err.message + '\n'));
+    process.exit(1);
+  });
+  child.on('close', (code) => process.exit(code ?? 1));
 }
 
 // ── Doctor ──
@@ -841,7 +853,7 @@ function runJSAudit(dir, opts) {
   printBanner();
   console.log(chalk.yellow('  Running JS engine (bash not available)\n'));
 
-  const { JSEngine } = require(path.join(LIB, 'js-engine.js'));
+  const { JSEngine } = require(path.join(LIB, 'core', 'jsEngine.js'));
   const engine = new JSEngine(dir, opts);
   const result = engine.run();
 

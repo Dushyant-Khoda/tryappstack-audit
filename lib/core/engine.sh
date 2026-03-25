@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${TRYAPPSTACK_VERSION:-3.1.0}"
+VERSION="${TRYAPPSTACK_VERSION:-1.0.0}"
 LIB="${TRYAPPSTACK_LIB:-$(cd "$(dirname "$0")/.." && pwd)}"
 CORE="$(cd "$(dirname "$0")" && pwd)"
 
@@ -47,6 +47,9 @@ for m in "${MODS[@]}"; do
   dashed="${m//_/-}"
   [[ "${MOD_ON[$dashed]:-}" == "true" ]] && MOD_ON[$m]=true
 done
+# Short-name aliases
+[[ "${MOD_ON[tests]:-}" == "true" ]] && MOD_ON[test_coverage]=true
+[[ "${MOD_ON[docs]:-}" == "true" ]] && MOD_ON[api_docs]=true
 
 # ── Load config ──
 [[ -f "$DIR/.auditrc" ]] && source "$DIR/.auditrc" 2>/dev/null || true
@@ -66,7 +69,9 @@ detect_framework "$DIR"
 
 # ── Output setup ──
 TS=$(date '+%Y-%m-%d_%H-%M')
+DATE_DISPLAY=$(date '+%Y-%m-%d %H:%M')
 PROJECT=$(basename "$(cd "$DIR" && pwd)")
+export DATE_DISPLAY
 [[ -z "$OUTPUT_FILE" ]] && { mkdir -p "$DIR/audits" 2>/dev/null || true; OUTPUT_FILE="$DIR/audits/${REPORT_NAME:-audit-$TS}.md"; }
 [[ "$OUTPUT_FILE" != *.md ]] && OUTPUT_FILE="${OUTPUT_FILE}.md"
 
@@ -98,7 +103,7 @@ run_mod() {
   fi
   source "$f"
   REPORT_BODY+=$("audit_${m}" "$DIR" 2>&1)$'\n\n'
-  $PRE_PUSH && echo -e "  ${DIM}${name}: ${SCORES[*]:(-1):1:-}/100${NC}" || true
+  $PRE_PUSH && echo -e "  ${DIM}${name}: ${SCORES[$m]:-0}/100${NC}" || true
 }
 
 ((CUR_STEP++))
@@ -123,7 +128,7 @@ generate_md_report "$OUTPUT_FILE"
 # ── Console output ──
 if ! $PRE_PUSH; then
   echo ""
-  print_scorecard
+  print_scorecard_console
   echo ""
   echo -e "  ${GREEN}${BOLD}✓${NC} Report saved: ${UNDERLINE}${OUTPUT_FILE}${NC}"
   print_quick_wins
@@ -131,15 +136,15 @@ fi
 
 # ── JSON output ──
 if ${JSON_OUT:-false}; then
-  local json_scores="{"
-  local first=true
+  json_scores="{"
+  first=true
   for m in "${!SCORES[@]}"; do
     $first && first=false || json_scores+=","
     json_scores+="\"$m\":${SCORES[$m]}"
   done
   json_scores+="}"
-  local avg=0; [[ $TOTAL_MODS -gt 0 ]] && avg=$((TOTAL_SCORE / TOTAL_MODS))
-  echo "{\"project\":\"$PROJECT\",\"framework\":\"$FRAMEWORK_DISPLAY\",\"score\":$avg,\"modules\":$json_scores,\"report\":\"$OUTPUT_FILE\"}"
+  json_avg=0; [[ $TOTAL_MODS -gt 0 ]] && json_avg=$((TOTAL_SCORE / TOTAL_MODS))
+  echo "{\"project\":\"$PROJECT\",\"framework\":\"$FRAMEWORK_DISPLAY\",\"score\":$json_avg,\"modules\":$json_scores,\"report\":\"$OUTPUT_FILE\"}"
 fi
 
 # ── Strict exit ──

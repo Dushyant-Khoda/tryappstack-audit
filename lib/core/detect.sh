@@ -1,5 +1,5 @@
 #!/bin/bash
-# Framework auto-detection (v3 — expanded)
+# Framework auto-detection
 
 detect_framework() {
   local dir="$1"

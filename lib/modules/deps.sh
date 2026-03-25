@@ -19,9 +19,9 @@ audit_deps() {
   fi
 
   # Tooling
-  [[ -f "$dir/.eslintrc"* || -f "$dir/eslint.config"* ]] || grep -q '"eslint"' "$pkg" 2>/dev/null && ck_pass "ESLint" || ck_warn "No linter"
-  grep -q '"prettier"' "$pkg" 2>/dev/null || [[ -f "$dir/.prettierrc"* ]] && ck_pass "Prettier" || ck_warn "No formatter"
-  [[ -d "$dir/.husky" ]] || grep -q '"husky"' "$pkg" 2>/dev/null && ck_pass "Git hooks" || ck_warn "No git hooks"
+  { compgen -G "$dir/.eslintrc*" &>/dev/null || compgen -G "$dir/eslint.config*" &>/dev/null || grep -q '"eslint"' "$pkg" 2>/dev/null; } && ck_pass "ESLint" || ck_warn "No linter"
+  { grep -q '"prettier"' "$pkg" 2>/dev/null || compgen -G "$dir/.prettierrc*" &>/dev/null; } && ck_pass "Prettier" || ck_warn "No formatter"
+  { [[ -d "$dir/.husky" ]] || grep -q '"husky"' "$pkg" 2>/dev/null; } && ck_pass "Git hooks" || ck_warn "No git hooks"
 
   # Gitignore
   [[ -f "$dir/.gitignore" ]] && ck_pass ".gitignore exists" || ck_warn "No .gitignore"

@@ -64,7 +64,7 @@ Be concise, use markdown, be actionable. No generic advice."
       result=$(curl -sS --max-time 30 https://api.x.ai/v1/chat/completions \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $AI_KEY" \
-        -d "$(jq -n --arg p "$prompt" '{model:"grok-3-mini",messages:[{role:"user",content:$p}],max_tokens:2000,temperature:0.3}')" 2>/dev/null \
+        -d "$(jq -n --arg p "$prompt" '{model:"grok-3",messages:[{role:"user",content:$p}],max_tokens:2000,temperature:0.3}')" 2>/dev/null \
         | jq -r '.choices[0].message.content // empty' 2>/dev/null) ;;
 
     gemini|google)
