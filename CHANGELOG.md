@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Dushyant-Khoda/tryappstack-audit/compare/v1.1.0...v1.1.1) (2026-03-25)
+
+
+### Bug Fixes
+
+* production hardening — 16 bugs fixed across all modules ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951990e9285dcb769ef4e6988c9a08c9d17a))
+
 # 1.0.1 (2026-03-25)
 
 
