@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Dushyant-Khoda/tryappstack-audit/compare/v1.0.0...v1.1.0) (2026-03-25)
+
+
+### Features
+
+* launch tryappstack-audit — 16-module code audit + AI team REPL for JS/TS projects ([163b919](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/163b919eadcecd431531f04f54636538046da172))
+
 # 1.0.0 (2026-03-25)
 
 
