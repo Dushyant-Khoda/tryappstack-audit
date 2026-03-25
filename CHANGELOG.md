@@ -1,3 +1,25 @@
+# 1.0.1 (2026-03-25)
+
+
+### Bug Fixes
+
+* **bin/cli.js:** add `child.on('error')` to `runAudit` and `runFix` spawns — unhandled ENOENT crash when bash not in PATH ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **bin/cli.js:** fix `JSEngine` import path `lib/js-engine.js` → `lib/core/jsEngine.js` — module not found on every Windows run ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **bin/cli.js:** `--tests`, `--a11y`, `--docs`, `--json` flags silently dropped — never forwarded to bash engine ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **bin/cli.js:** fix exit code `code || 0` → `code ?? 1` in `runAudit` and `runFix` ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/commands/audit.js:** add `child.on('error')` to `runWithBash` — same ENOENT crash as bin/cli.js ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/commands/audit.js:** fix exit code `code || 0` → `code ?? 1` ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/commands/watch.js:** remove invalid `run` subcommand from `execSync` call — caused "unknown command" error on every file-save re-audit ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/core/engine.sh:** fix invalid bash array slice `${SCORES[*]:(-1):1:-}` — syntax error on every pre-push run ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/core/engine.sh:** `--tests` and `--docs` module flags were no-ops — add aliases `tests→test_coverage` and `docs→api_docs` ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/core/ai.sh:** align Grok model `grok-3-mini` → `grok-3` — inconsistent with JS runner, wrong model used in bash engine ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/core/scanner.js:** `fs.existsSync("components.json")` relative CWD path — shadcn/ui never detected when a directory argument is passed; fix to `path.join(dir, "components.json")` and add `dir` param to `detectTechStack` ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/core/jsEngine.js:** O(n²) file reads in `auditDeadCode` — reads all n files for each of n files; hang on projects with 200+ source files; rewrite to single O(n) pass ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/core/jsEngine.js:** unbounded string concat in `auditUnusedPackages` — all file contents concatenated without limit; add 64 KB per-file cap to prevent OOM ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/ai/runner.js:** `--temperature` flag ignored — `temperature` param not wired through `callClaude`, `callOpenAI`, `callGrok`, `callGemini`, `callDeepSeek` ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/modules/deps.sh:** operator precedence bug — `ck_pass "Prettier"` and `ck_pass "Git hooks"` never called when condition is true; checks counter never incremented; inflated issue score ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+* **lib/modules/deps.sh:** glob `[[ -f "$dir/.eslintrc"* ]]` never expands inside `[[ ]]` — eslint config files without a package.json entry not detected; replace with `compgen -G` ([c81e951](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/c81e951))
+
 # 1.0.0 (2026-03-25)
 
 
@@ -22,6 +44,46 @@ This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Custom audit module plugin system
 - Python / Django project support
 - SARIF output format for GitHub Security tab
+
+---
+
+## [1.0.1] - 2026-03-25
+
+### Fixed
+
+#### bin/cli.js
+- **`runAudit` / `runFix` spawn crash** — Added `child.on('error', ...)` to both bash spawns. Without it, a missing or mis-located `bash` binary (common in Docker minimal images and some CI environments) threw an unhandled `Error: spawn bash ENOENT` that crashed the process with no user-visible message.
+- **Wrong exit code** — `process.exit(code || 0)` replaced with `process.exit(code ?? 1)`. When bash is killed by a signal (e.g. OOM), `code` is `null`; `null || 0` incorrectly exited with 0 (success) instead of a non-zero failure code.
+- **`--tests`, `--a11y`, `--docs`, `--json` flags silently dropped** — Four CLI flags were defined in Commander but never forwarded to the bash engine args array. Any user running `tas-audit --tests` or `--json` got a full 16-module run instead of the scoped or JSON run they requested.
+- **Wrong `JSEngine` import path** — `require('lib/js-engine.js')` → `require('lib/core/jsEngine.js')`. The JS engine fallback (used on Windows without WSL) crashed with `MODULE_NOT_FOUND` on every invocation.
+
+#### lib/commands/audit.js
+- **`runWithBash` spawn crash** — Same missing `child.on('error', ...)` as above; the programmatic entry point (`package.json` → `main`) shared the same crash path.
+- **Wrong exit code** — Same `code || 0` → `code ?? 1` fix.
+
+#### lib/commands/watch.js
+- **Invalid `run` subcommand** — `execSync` called `cli.js run "<dir>"` which is not a valid subcommand. Every file-save re-audit in watch mode printed `error: unknown command 'run'` and produced no report.
+
+#### lib/core/engine.sh
+- **Invalid bash array slice** — `${SCORES[*]:(-1):1:-}` is not valid bash slice syntax, causing a syntax error on every pre-push run when module scores were printed. Replaced with `${SCORES[$m]:-0}`.
+- **`--tests` and `--docs` were silent no-ops** — The flag parser set `MOD_ON[tests]` and `MOD_ON[docs]` but the module array contains `test_coverage` and `api_docs` respectively. Neither flag ever enabled its module. Added short-name aliases after the flag-normalisation loop.
+
+#### lib/core/ai.sh
+- **Wrong Grok model** — Bash engine used `grok-3-mini`; the JS runner used `grok-3`. The two execution paths sent requests to different models for the same user command. Aligned to `grok-3`.
+
+#### lib/core/scanner.js
+- **`components.json` relative path** — `fs.existsSync("components.json")` resolved against the process CWD, not the scanned project directory. shadcn/ui was never detected whenever `tas-audit` was run with a directory argument (e.g. `tas-audit ./my-app`). Fixed to `path.join(dir, "components.json")` and updated `detectTechStack` signature to accept `dir`.
+
+#### lib/core/jsEngine.js
+- **O(n²) file reads in `auditDeadCode`** — For each of _n_ source files the original code re-read all _n−1_ other files. On a project with 300 source files this meant ~89,700 synchronous file reads, causing audits to hang for minutes. Rewrote to read all files once into a `contents` array and build a single `combined` string; each file is then checked against `combined` in O(1).
+- **Unbounded string concat in `auditUnusedPackages`** — All source file contents were concatenated into a single unbounded string. On large monorepos this could produce strings hundreds of megabytes long, causing OOM. Added a 64 KB per-file cap.
+
+#### lib/ai/runner.js
+- **`temperature` flag ignored** — The `--temperature` CLI option was accepted and parsed but never passed to any of the five provider call functions (`callClaude`, `callOpenAI`, `callGrok`, `callGemini`, `callDeepSeek`). All AI requests used a hardcoded `0.3` regardless of the user's setting.
+
+#### lib/modules/deps.sh
+- **Operator precedence bug (Prettier + Git hooks)** — Lines 23 and 24 used unparenthesised `A || B && ck_pass || ck_warn` chains. Because `&&` binds tighter than `||` in bash, when `A` (the first condition) was true the expression short-circuited before `ck_pass` was reached — the checks counter was never incremented. This caused the `Dep Health` score to appear worse than reality for any project that had Prettier in `package.json` or a `.husky` directory. Fixed by wrapping conditions in `{ } &&` groups.
+- **Glob inside `[[ ]]` never expands (ESLint detection)** — `[[ -f "$dir/.eslintrc"* ]]` — glob expansion does not occur inside bash `[[ ]]` compound tests, so this literally checked for a file named `.eslintrc*` with the asterisk as a character. ESLint config files (`.eslintrc.js`, `eslint.config.mjs`, etc.) were never detected unless `"eslint"` also appeared in `package.json`. Replaced with `compgen -G` which performs proper glob expansion.
 
 ---
 
