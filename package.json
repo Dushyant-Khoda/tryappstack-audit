@@ -1,0 +1,80 @@
+{
+  "name": "tryappstack-audit",
+  "version": "1.0.0",
+  "description": "16-module code audit + AI assistant for JS/TS projects. Runs in your terminal. Supports Claude, GPT-4o, Grok, Gemini, and DeepSeek.",
+  "license": "MIT",
+  "author": "Dushyant Khoda",
+  "homepage": "https://tryappstack.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dushyant-Khoda/tryappstack-audit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dushyant-Khoda/tryappstack-audit/issues"
+  },
+  "main": "lib/commands/audit.js",
+  "bin": {
+    "tryappstack-audit": "bin/cli.js",
+    "tas-audit": "bin/cli.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin/",
+    "lib/"
+  ],
+  "scripts": {
+    "test": "node bin/cli.js",
+    "lint": "eslint bin lib --ignore-pattern '*.sh'",
+    "format": "prettier --write \"bin/**/*.js\" \"lib/**/*.js\"",
+    "prepare": "husky || true"
+  },
+  "keywords": [
+    "code audit",
+    "code quality",
+    "react audit",
+    "nextjs audit",
+    "angular audit",
+    "vue audit",
+    "node audit",
+    "nestjs audit",
+    "dead code",
+    "unused packages",
+    "security audit",
+    "developer tools",
+    "ai code review",
+    "pre-push hook",
+    "tryappstack"
+  ],
+  "dependencies": {
+    "chalk": "4.1.2",
+    "cli-spinners": "^2.9.2",
+    "commander": "^14.0.3",
+    "figlet": "^1.8.0",
+    "inquirer": "^8.2.6",
+    "ora": "5.4.1"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.6",
+    "@semantic-release/npm": "^13.1.5",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "eslint": "^8.57.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.5",
+    "semantic-release": "^25.0.3"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}

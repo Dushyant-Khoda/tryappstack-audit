@@ -1,0 +1,26 @@
+#!/bin/bash
+audit_alternatives() {
+  local dir="$1"; local sug=0; local pkg="$dir/package.json"
+  print_module_header "🔄" "Better Alternatives"
+  echo "| Current | Better Alternative | Why |"; echo "|---------|-------------------|-----|"
+  s() { grep -q "\"$1\"" "$pkg" 2>/dev/null && echo "| \`$1\` | **$2** | $3 |" && ((sug++)); }
+  s "moment" "dayjs" "97% smaller, same API"
+  s "axios" "native fetch" "Zero bundle cost"
+  s "lodash" "lodash-es" "Tree-shakeable"
+  s "uuid" "crypto.randomUUID()" "Native, zero bundle"
+  s "classnames" "clsx" "14x smaller"
+  s "redux" "zustand" "Less boilerplate"
+  s "vuex" "pinia" "Official Vue recommendation"
+  s "formik" "react-hook-form" "Better performance"
+  s "jest" "vitest" "Faster, native ESM"
+  s "webpack" "Vite" "10-100x faster"
+  s "nodemon" "node --watch" "Native Node 18+"
+  s "dotenv" "node --env-file" "Native Node 20+"
+  s "chalk" "picocolors" "14x smaller"
+  s "ts-node" "tsx" "Faster, ESM support"
+  s "styled-components" "Tailwind CSS" "Zero runtime"
+  s "sequelize" "Drizzle ORM" "Type-safe, lighter"
+  [[ $sug -eq 0 ]] && echo "| ✅ | Your stack is modern | No swaps needed |"
+  echo ""; echo "**$sug** suggestions"; echo ""
+  local sc=$((100 - sug * 5)); [[ $sc -lt 0 ]] && sc=0; register_score "Alternatives" "$sc"
+}
