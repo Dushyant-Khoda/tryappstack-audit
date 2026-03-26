@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/Dushyant-Khoda/tryappstack-audit/compare/v1.1.1...v1.1.2) (2026-03-26)
+
+
+### Bug Fixes
+
+* make tryappstack-audit cross-platform bug-free (bash 4+ fallback, JSON/strict, module flags) ([7c74216](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/7c74216b8bef32d790f815d8078ccf7657da26c5))
+* tas-audit produces no report — 3 root causes fixed ([e779d15](https://github.com/Dushyant-Khoda/tryappstack-audit/commit/e779d156caeb01a300666f844b574795cb302b1d))
+
 ## [1.1.1](https://github.com/Dushyant-Khoda/tryappstack-audit/compare/v1.1.0...v1.1.1) (2026-03-25)
 
 
