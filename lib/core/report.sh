@@ -19,25 +19,25 @@ generate_md_report() {
 
   # Build score table
   local score_table=""
-  for module in $(for k in "${!SCORES[@]}"; do echo "$k"; done | sort); do
-    local s=${SCORES[$module]}
+  while IFS= read -r module; do
+    local s=${SCORES[$module]:-0}
     local emoji="🟢"
     [[ $s -lt 60 ]] && emoji="🔴"
     [[ $s -ge 60 && $s -lt 80 ]] && emoji="🟡"
     [[ $s -ge 80 ]] && emoji="🟢"
     score_table+="| $emoji $module | **$s**/100 |"$'\n'
-  done
+  done < <(for k in "${!SCORES[@]}"; do echo "$k"; done | sort)
 
   # Quick wins
   local quick_wins=""
-  local sorted_scores=$(for k in "${!SCORES[@]}"; do echo "${SCORES[$k]} $k"; done | sort -n)
+  local sorted_scores; sorted_scores=$(for k in "${!SCORES[@]}"; do echo "${SCORES[$k]:-0} $k"; done | sort -n)
   local win_count=0
   while IFS= read -r line; do
     local s=$(echo "$line" | awk '{print $1}')
     local m=$(echo "$line" | awk '{$1=""; print $0}' | xargs)
     if [[ $s -lt 80 && $win_count -lt 5 ]]; then
       quick_wins+="- **$m** ($s/100) — focus here for biggest impact"$'\n'
-      ((win_count++))
+      (( win_count++ )) || true
     fi
   done <<< "$sorted_scores"
 
@@ -147,8 +147,8 @@ print_scorecard_console() {
   echo -e "  ${BOLD}│                      📋 SCORECARD                              │${NC}"
   echo -e "  ${BOLD}├────────────────────────────────────────────────────────────────┤${NC}"
 
-  for module in $(for k in "${!SCORES[@]}"; do echo "${SCORES[$k]} $k"; done | sort -rn | awk '{$1=""; print $0}' | xargs -I{} echo {}); do
-    local s=${SCORES[$module]}
+  while IFS= read -r module; do
+    local s=${SCORES[$module]:-0}
     local bar_w=30
     local filled=$((s * bar_w / 100))
     local bar="" empty=""
@@ -160,7 +160,7 @@ print_scorecard_console() {
     [[ $s -ge 60 && $s -lt 80 ]] && sc="$YELLOW"
 
     printf "  ${BOLD}│${NC} %-18s ${sc}%s${NC}${DIM}%s${NC} %3d ${BOLD}│${NC}\n" "$module" "$bar" "$empty" "$s"
-  done
+  done < <(for k in "${!SCORES[@]}"; do echo "${SCORES[$k]:-0} $k"; done | sort -rn | awk '{$1=""; sub(/^ /, ""); print}')
 
   echo -e "  ${BOLD}├────────────────────────────────────────────────────────────────┤${NC}"
   printf "  ${BOLD}│${NC}  Overall: ${gc}${BOLD}%d/100 (Grade: %s)${NC}%*s${BOLD}│${NC}\n" "$avg" "$grade" $((35 - ${#grade})) ""
@@ -169,7 +169,7 @@ print_scorecard_console() {
 
 # Quick wins console
 print_quick_wins() {
-  local sorted=$(for k in "${!SCORES[@]}"; do echo "${SCORES[$k]} $k"; done | sort -n | head -3)
+  local sorted; sorted=$(for k in "${!SCORES[@]}"; do echo "${SCORES[$k]:-0} $k"; done | sort -n | head -3)
   local has_wins=false
 
   while IFS= read -r line; do

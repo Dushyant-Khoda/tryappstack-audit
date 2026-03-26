@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  echo "  ERROR: bash 4+ required (found ${BASH_VERSION})." >&2
+  echo "  macOS: brew install bash" >&2
+  exit 1
+fi
+
 VERSION="${TRYAPPSTACK_VERSION:-1.0.0}"
 LIB="${TRYAPPSTACK_LIB:-$(cd "$(dirname "$0")/.." && pwd)}"
 CORE="$(cd "$(dirname "$0")" && pwd)"
@@ -30,7 +36,7 @@ export -f register_score register_issue
 while [[ $# -gt 0 ]]; do
   case $1 in
     -o) OUTPUT_FILE="$2"; shift 2;; -n) REPORT_NAME="$2"; shift 2;; --verbose) VERBOSE=true; shift;;
-    --strict) STRICT=true; STRICT_T="${2:-70}"; shift; [[ "${1:-}" =~ ^[0-9]+$ ]] && { STRICT_T="$1"; shift; };;
+    --strict) STRICT=true; shift; if [[ "${1:-}" =~ ^[0-9]+$ ]]; then STRICT_T="$1"; shift; else STRICT_T=70; fi;;
     --ai) AI_ENABLED=true; shift;; --ai-key) AI_KEY="$2"; AI_ENABLED=true; shift 2;;
     --ai-provider) AI_PROVIDER="$2"; shift 2;; --pre-push) PRE_PUSH=true; STRICT=true; VERBOSE=false; shift;;
     --exclude) IFS=',' read -ra EXCLUDE <<< "$2"; shift 2;; --include) IFS=',' read -ra INCLUDE <<< "$2"; shift 2;;
@@ -79,8 +85,8 @@ export DATE_DISPLAY
 TOT=2; $AI_ENABLED && ((TOT++))
 for m in "${MODS[@]}"; do ($RUN_ALL || [[ "${MOD_ON[$m]:-}" == "true" ]]) && ((TOT++)); done
 
-# ── Info (non-prepush) ──
-if ! $PRE_PUSH; then
+# ── Info (non-prepush, non-json) ──
+if ! $PRE_PUSH && ! $JSON_OUT; then
   echo -e "  ${DIM}Project${NC}     $PROJECT"
   echo -e "  ${DIM}Framework${NC}   $FRAMEWORK_DISPLAY"
   echo -e "  ${DIM}Language${NC}    $LANG_DISPLAY"
@@ -95,7 +101,7 @@ run_mod() {
   (( CUR_STEP++ )) || true
   [[ ! -f "$f" ]] && return 0
   local name="${m//_/ }"
-  if ! $PRE_PUSH && [[ -t 1 ]]; then
+  if ! $PRE_PUSH && ! $JSON_OUT && [[ -t 1 ]]; then
     local pct=$((CUR_STEP*100/TOT)) w=20 filled=$((CUR_STEP*20/TOT)) bar=""
     for ((i=0;i<filled;i++)); do bar+="━"; done
     for ((i=filled;i<w;i++)); do bar+="─"; done
@@ -110,7 +116,7 @@ run_mod() {
 }
 
 (( CUR_STEP++ )) || true
-$PRE_PUSH || printf "\r  ${ACCENT}━${NC}${DIM}─────────────────── [1/%d]${NC} Detecting framework...          " "$TOT"
+! $PRE_PUSH && ! $JSON_OUT && printf "\r  ${ACCENT}━${NC}${DIM}─────────────────── [1/%d]${NC} Detecting framework...          " "$TOT" || true
 
 for m in "${MODS[@]}"; do
   ($RUN_ALL || [[ "${MOD_ON[$m]:-}" == "true" ]]) && run_mod "$m"
@@ -119,17 +125,17 @@ done
 # ── AI ──
 if $AI_ENABLED && [[ -n "$AI_KEY" ]]; then
   (( CUR_STEP++ )) || true
-  $PRE_PUSH || printf "\r  ${ACCENT}━━━━━━━━━━━━━━━━━━━━${NC} ${DIM}[%d/%d]${NC} AI analysis...                  " "$CUR_STEP" "$TOT"
+  ! $PRE_PUSH && ! $JSON_OUT && printf "\r  ${ACCENT}━━━━━━━━━━━━━━━━━━━━${NC} ${DIM}[%d/%d]${NC} AI analysis...                  " "$CUR_STEP" "$TOT" || true
   REPORT_BODY+=$(run_ai_analysis)$'\n\n'
 fi
 
 # ── Generate report ──
 (( CUR_STEP++ )) || true
-$PRE_PUSH || printf "\r  ${ACCENT}━━━━━━━━━━━━━━━━━━━━${NC} ${DIM}[%d/%d]${NC} Generating report...            \n" "$CUR_STEP" "$TOT"
+! $PRE_PUSH && ! $JSON_OUT && printf "\r  ${ACCENT}━━━━━━━━━━━━━━━━━━━━${NC} ${DIM}[%d/%d]${NC} Generating report...            \n" "$CUR_STEP" "$TOT" || true
 generate_md_report "$OUTPUT_FILE"
 
 # ── Console output ──
-if ! $PRE_PUSH; then
+if ! $PRE_PUSH && ! $JSON_OUT; then
   echo ""
   print_scorecard_console
   echo ""
@@ -138,7 +144,7 @@ if ! $PRE_PUSH; then
 fi
 
 # ── JSON output ──
-if ${JSON_OUT:-false}; then
+if $JSON_OUT; then
   json_scores="{"
   first=true
   for m in "${!SCORES[@]}"; do
@@ -147,15 +153,21 @@ if ${JSON_OUT:-false}; then
   done
   json_scores+="}"
   json_avg=0; [[ $TOTAL_MODS -gt 0 ]] && json_avg=$((TOTAL_SCORE / TOTAL_MODS))
-  echo "{\"project\":\"$PROJECT\",\"framework\":\"$FRAMEWORK_DISPLAY\",\"score\":$json_avg,\"modules\":$json_scores,\"report\":\"$OUTPUT_FILE\"}"
+  _jp="${PROJECT//\"/\\\"}"
+  _jf="${FRAMEWORK_DISPLAY//\"/\\\"}"
+  echo "{\"project\":\"$_jp\",\"framework\":\"$_jf\",\"score\":$json_avg,\"modules\":$json_scores,\"report\":\"$OUTPUT_FILE\"}"
 fi
 
 # ── Strict exit ──
 if $STRICT && [[ $TOTAL_MODS -gt 0 ]]; then
   avg=$((TOTAL_SCORE / TOTAL_MODS))
   if [[ $avg -lt $STRICT_T ]]; then
-    echo -e "  ${RED}${BOLD}✗ FAILED: $avg < $STRICT_T${NC}"
-    $PRE_PUSH && echo -e "  ${DIM}Run 'npx tryappstack-audit' for details. Skip: git push --no-verify${NC}"
+    if $JSON_OUT; then
+      echo "  ✗ FAILED: $avg < $STRICT_T" >&2
+    else
+      echo -e "  ${RED}${BOLD}✗ FAILED: $avg < $STRICT_T${NC}"
+    fi
+    $PRE_PUSH && echo -e "  ${DIM}Run 'npx tryappstack-audit' for details. Skip: git push --no-verify${NC}" >&2
     exit 1
   fi
   $PRE_PUSH && echo -e "  ${GREEN}${BOLD}✓ PASSED: $avg ≥ $STRICT_T${NC}"

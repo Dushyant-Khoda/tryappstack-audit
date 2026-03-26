@@ -36,6 +36,20 @@ This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.2] - 2026-03-26
+
+### Fixed
+- Cross-platform bash compatibility: detect bash version and fall back to JS engine when bash < 4 (macOS stock bash).
+- macOS grep compatibility: replaced `grep -P` usage with BSD/GNU-safe patterns (uses `grep -E` instead).
+- Machine-readable JSON: `--json` now outputs ONLY JSON (no banner/scorecard text mixed into stdout).
+- CI strictness: fixed `--strict` threshold handling so failures remain consistent with `--json`.
+- Scoped module flags on all OSes: JS engine now honors `--security`, `--dead-code`, `--unused-packages`, etc.
+- JS engine parity: implemented full 16-module parity (Performance, Best Practices, Alternatives, Git Health, Test Coverage, API Docs, A11y).
+- Doctor improvements: bash version awareness + platform-safe dependency checks.
+- `fix` robustness: added WSL-aware handling for environments where bash must run via WSL.
+
+---
+
 ## [Unreleased]
 
 ### Planned

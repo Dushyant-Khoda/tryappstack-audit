@@ -22,7 +22,7 @@ audit_complexity() {
   # any usage
   if $IS_TYPESCRIPT; then
     local any_total=$(find "$src" -type f \( -name '*.ts' -o -name '*.tsx' \) -not -name '*.test.*' -not -name '*.d.ts' \
-      -exec grep -cP ':\s*any\b|<any>|as any' {} + 2>/dev/null | awk -F: '{sum+=$NF} END{print sum+0}')
+      -exec grep -cE ':[[:space:]]*any[^a-zA-Z_]|<any>|as any' {} + 2>/dev/null | awk -F: '{sum+=$NF} END{print sum+0}')
     [[ $any_total -gt 0 ]] && { echo "| *codebase* | $any_total \`any\` usages | Add proper types |"; (( issues++ )) || true; }
   fi
 
