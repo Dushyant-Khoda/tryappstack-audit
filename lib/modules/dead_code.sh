@@ -13,9 +13,9 @@ audit_dead_code() {
   while IFS= read -r -d '' file; do
     local fp="${file#$dir/}"; local cat=$(get_file_category "$fp")
     case "$cat" in Test|Config|Barrel|Types|Module) continue ;; esac
-    ((total++))
+    (( total++ )) || true
     if ! is_file_imported "$fp" "$idx"; then
-      echo "| \`$fp\` | $cat | 🔴 Unused |"; ((dead++))
+      echo "| \`$fp\` | $cat | 🔴 Unused |"; (( dead++ )) || true
       register_issue "Dead Code" "- \`$fp\` ($cat)"
     else
       $VERBOSE && echo "| \`$fp\` | $cat | ✅ Used |"

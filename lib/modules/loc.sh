@@ -22,40 +22,40 @@ audit_loc() {
     local lines=$(wc -l < "$file")
     local fp="${file#$dir/}"
     local cat=$(get_file_category "$fp")
-    ((total++))
+    (( total++ )) || true
 
     case "$cat" in Test|Config|Barrel|Types) continue ;; esac
 
     local status="" action="" emoji=""
     case "$cat" in
       Page)
-        if [[ $lines -gt $page_crit ]]; then emoji="🔴"; status="Critical"; action="Split into components + hooks"; ((critical++))
-        elif [[ $lines -gt $page_warn ]]; then emoji="🟡"; status="Reduce"; action="Extract hooks & sub-components"; ((warning++))
-        elif [[ $lines -gt 200 ]]; then emoji="🟢"; status="OK"; action="Consider extracting"; ((good++))
-        else emoji="✅"; status="Clean"; action="—"; ((clean++)); fi ;;
+        if [[ $lines -gt $page_crit ]]; then emoji="🔴"; status="Critical"; action="Split into components + hooks"; (( critical++ )) || true
+        elif [[ $lines -gt $page_warn ]]; then emoji="🟡"; status="Reduce"; action="Extract hooks & sub-components"; (( warning++ )) || true
+        elif [[ $lines -gt 200 ]]; then emoji="🟢"; status="OK"; action="Consider extracting"; (( good++ )) || true
+        else emoji="✅"; status="Clean"; action="—"; (( clean++ )) || true; fi ;;
       Component|Composable|Directive)
-        if [[ $lines -gt $comp_crit ]]; then emoji="🔴"; status="Critical"; action="Break into smaller pieces"; ((critical++))
-        elif [[ $lines -gt $comp_warn ]]; then emoji="🟡"; status="Reduce"; action="Extract logic"; ((warning++))
-        elif [[ $lines -gt 100 ]]; then emoji="🟢"; status="OK"; action="—"; ((good++))
-        else emoji="✅"; status="Clean"; action="—"; ((clean++)); fi ;;
+        if [[ $lines -gt $comp_crit ]]; then emoji="🔴"; status="Critical"; action="Break into smaller pieces"; (( critical++ )) || true
+        elif [[ $lines -gt $comp_warn ]]; then emoji="🟡"; status="Reduce"; action="Extract logic"; (( warning++ )) || true
+        elif [[ $lines -gt 100 ]]; then emoji="🟢"; status="OK"; action="—"; (( good++ )) || true
+        else emoji="✅"; status="Clean"; action="—"; (( clean++ )) || true; fi ;;
       Hook)
-        if [[ $lines -gt 150 ]]; then emoji="🟡"; status="Reduce"; action="Split hook"; ((warning++))
-        else emoji="✅"; status="Clean"; action="—"; ((clean++)); fi ;;
+        if [[ $lines -gt 150 ]]; then emoji="🟡"; status="Reduce"; action="Split hook"; (( warning++ )) || true
+        else emoji="✅"; status="Clean"; action="—"; (( clean++ )) || true; fi ;;
       Utility|Lib|Service)
-        if [[ $lines -gt $util_crit ]]; then emoji="🔴"; status="Critical"; action="Split by domain"; ((critical++))
-        elif [[ $lines -gt $util_warn ]]; then emoji="🟡"; status="Reduce"; action="Break into modules"; ((warning++))
-        else emoji="🟢"; status="OK"; action="—"; ((good++)); fi ;;
+        if [[ $lines -gt $util_crit ]]; then emoji="🔴"; status="Critical"; action="Split by domain"; (( critical++ )) || true
+        elif [[ $lines -gt $util_warn ]]; then emoji="🟡"; status="Reduce"; action="Break into modules"; (( warning++ )) || true
+        else emoji="🟢"; status="OK"; action="—"; (( good++ )) || true; fi ;;
       Controller|Route)
-        if [[ $lines -gt 300 ]]; then emoji="🔴"; status="Critical"; action="Split routes"; ((critical++))
-        elif [[ $lines -gt 150 ]]; then emoji="🟡"; status="Reduce"; action="Extract to service"; ((warning++))
-        else emoji="🟢"; status="OK"; action="—"; ((good++)); fi ;;
+        if [[ $lines -gt 300 ]]; then emoji="🔴"; status="Critical"; action="Split routes"; (( critical++ )) || true
+        elif [[ $lines -gt 150 ]]; then emoji="🟡"; status="Reduce"; action="Extract to service"; (( warning++ )) || true
+        else emoji="🟢"; status="OK"; action="—"; (( good++ )) || true; fi ;;
       UI)
-        if [[ $lines -gt 200 ]]; then emoji="🟡"; status="Reduce"; action="Too large for primitive"; ((warning++))
-        else emoji="✅"; status="Clean"; action="—"; ((clean++)); fi ;;
+        if [[ $lines -gt 200 ]]; then emoji="🟡"; status="Reduce"; action="Too large for primitive"; (( warning++ )) || true
+        else emoji="✅"; status="Clean"; action="—"; (( clean++ )) || true; fi ;;
       *)
-        if [[ $lines -gt 300 ]]; then emoji="🔴"; status="Critical"; action="Split"; ((critical++))
-        elif [[ $lines -gt 150 ]]; then emoji="🟡"; status="Reduce"; action="Consider splitting"; ((warning++))
-        else emoji="🟢"; status="OK"; action="—"; ((good++)); fi ;;
+        if [[ $lines -gt 300 ]]; then emoji="🔴"; status="Critical"; action="Split"; (( critical++ )) || true
+        elif [[ $lines -gt 150 ]]; then emoji="🟡"; status="Reduce"; action="Consider splitting"; (( warning++ )) || true
+        else emoji="🟢"; status="OK"; action="—"; (( good++ )) || true; fi ;;
     esac
 
     [[ "$emoji" == "🔴" || "$emoji" == "🟡" ]] && echo "| \`$fp\` | $lines | $cat | $emoji $status | $action |"

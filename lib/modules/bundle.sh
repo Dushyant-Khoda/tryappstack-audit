@@ -12,7 +12,7 @@ audit_bundle() {
   echo "| Current Package | Recommendation | Savings |"
   echo "|----------------|----------------|---------|"
 
-  suggest() { grep -q "\"$1\"" "$pkg" 2>/dev/null && echo "| \`$1\` | $2 | $3 |" && ((issues++)); }
+  suggest() { grep -q "\"$1\"" "$pkg" 2>/dev/null && { echo "| \`$1\` | $2 | $3 |"; (( issues++ )) || true; }; }
   suggest "moment" "→ dayjs or date-fns" "~65KB"
   suggest "axios" "→ native fetch()" "~15KB"
   suggest "lodash" "→ lodash-es + cherry-pick" "~50KB"

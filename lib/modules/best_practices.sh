@@ -3,8 +3,8 @@ audit_best_practices() {
   local dir="$1"; local issues=0 checks=0; local src=$(get_src_dir "$dir"); local pkg="$dir/package.json"
   print_module_header "📐" "Best Practices ($FRAMEWORK_DISPLAY)"
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; }
 
   case "$FRAMEWORK" in
     react*|nextjs*)

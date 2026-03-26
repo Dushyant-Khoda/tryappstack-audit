@@ -9,8 +9,8 @@ audit_git_health() {
   fi
 
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; }
 
   # Branch count
   local branches=$(cd "$dir" && git branch 2>/dev/null | wc -l)

@@ -3,7 +3,7 @@ audit_alternatives() {
   local dir="$1"; local sug=0; local pkg="$dir/package.json"
   print_module_header "🔄" "Better Alternatives"
   echo "| Current | Better Alternative | Why |"; echo "|---------|-------------------|-----|"
-  s() { grep -q "\"$1\"" "$pkg" 2>/dev/null && echo "| \`$1\` | **$2** | $3 |" && ((sug++)); }
+  s() { grep -q "\"$1\"" "$pkg" 2>/dev/null && { echo "| \`$1\` | **$2** | $3 |"; (( sug++ )) || true; }; }
   s "moment" "dayjs" "97% smaller, same API"
   s "axios" "native fetch" "Zero bundle cost"
   s "lodash" "lodash-es" "Tree-shakeable"

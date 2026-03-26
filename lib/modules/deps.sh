@@ -3,8 +3,8 @@ audit_deps() {
   local dir="$1"; local issues=0 checks=0; local pkg="$dir/package.json"
   print_module_header "🔗" "Dependency Health"
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; }
 
   # Lock file
   [[ -f "$dir/package-lock.json" || -f "$dir/yarn.lock" || -f "$dir/pnpm-lock.yaml" || -f "$dir/bun.lockb" ]] && \

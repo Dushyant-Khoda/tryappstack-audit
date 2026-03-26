@@ -22,7 +22,7 @@ MODS=(loc unused_packages dead_code structure deps complexity security bundle pe
 for m in "${MODS[@]}"; do MOD_ON[$m]=false; done
 TOTAL_SCORE=0 TOTAL_MODS=0 REPORT_BODY="" CUR_STEP=0
 
-register_score() { local s=$2; [[ $s -gt 100 ]] && s=100; [[ $s -lt 0 ]] && s=0; SCORES["$1"]=$s; TOTAL_SCORE=$((TOTAL_SCORE+s)); ((TOTAL_MODS++)); }
+register_score() { local s=$2; [[ $s -gt 100 ]] && s=100; [[ $s -lt 0 ]] && s=0; SCORES["$1"]=$s; TOTAL_SCORE=$((TOTAL_SCORE+s)); (( TOTAL_MODS++ )) || true; }
 register_issue() { MOD_ISSUES["$1"]+="- $2"$'\n'; }
 export -f register_score register_issue
 
@@ -92,7 +92,7 @@ fi
 # ── Run modules ──
 run_mod() {
   local m="$1" f="$LIB/modules/${m}.sh"
-  ((CUR_STEP++))
+  (( CUR_STEP++ )) || true
   [[ ! -f "$f" ]] && return 0
   local name="${m//_/ }"
   if ! $PRE_PUSH && [[ -t 1 ]]; then
@@ -102,11 +102,14 @@ run_mod() {
     printf "\r  ${ACCENT}%s${NC} ${DIM}[%d/%d]${NC} %s%*s" "$bar" "$CUR_STEP" "$TOT" "$name" $((40-${#name})) ""
   fi
   source "$f"
-  REPORT_BODY+=$("audit_${m}" "$DIR" 2>&1)$'\n\n'
+  local _mod_out; _mod_out=$(mktemp)
+  "audit_${m}" "$DIR" > "$_mod_out" 2>&1 || true
+  REPORT_BODY+=$(< "$_mod_out"); REPORT_BODY+=$'\n\n'
+  rm -f "$_mod_out"
   $PRE_PUSH && echo -e "  ${DIM}${name}: ${SCORES[$m]:-0}/100${NC}" || true
 }
 
-((CUR_STEP++))
+(( CUR_STEP++ )) || true
 $PRE_PUSH || printf "\r  ${ACCENT}━${NC}${DIM}─────────────────── [1/%d]${NC} Detecting framework...          " "$TOT"
 
 for m in "${MODS[@]}"; do
@@ -115,13 +118,13 @@ done
 
 # ── AI ──
 if $AI_ENABLED && [[ -n "$AI_KEY" ]]; then
-  ((CUR_STEP++))
+  (( CUR_STEP++ )) || true
   $PRE_PUSH || printf "\r  ${ACCENT}━━━━━━━━━━━━━━━━━━━━${NC} ${DIM}[%d/%d]${NC} AI analysis...                  " "$CUR_STEP" "$TOT"
   REPORT_BODY+=$(run_ai_analysis)$'\n\n'
 fi
 
 # ── Generate report ──
-((CUR_STEP++))
+(( CUR_STEP++ )) || true
 $PRE_PUSH || printf "\r  ${ACCENT}━━━━━━━━━━━━━━━━━━━━${NC} ${DIM}[%d/%d]${NC} Generating report...            \n" "$CUR_STEP" "$TOT"
 generate_md_report "$OUTPUT_FILE"
 

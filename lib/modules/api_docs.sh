@@ -3,8 +3,8 @@ audit_api_docs() {
   local dir="$1"; local issues=0 checks=0; local pkg="$dir/package.json"
   print_module_header "📝" "Documentation & API Docs"
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; }
 
   # README quality
   if [[ -f "$dir/README.md" ]]; then
@@ -31,8 +31,8 @@ audit_api_docs() {
   local src=$(get_src_dir "$dir")
   local total_files=0 documented_files=0
   while IFS= read -r -d '' f; do
-    ((total_files++))
-    grep -q '/\*\*' "$f" 2>/dev/null && ((documented_files++))
+    (( total_files++ )) || true
+    grep -q '/\*\*' "$f" 2>/dev/null && { (( documented_files++ )) || true; }
   done < <(find "$src" -not -path '*/node_modules/*' -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' \) \
     -not -name '*.test.*' -not -name '*.spec.*' -not -name '*.d.ts' -not -name 'index.*' -print0 2>/dev/null)
 

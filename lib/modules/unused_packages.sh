@@ -18,13 +18,13 @@ audit_unused_packages() {
 
   local unused_list=()
   for pkg in $deps; do
-    ((total++))
+    (( total++ )) || true
     echo "$pkg" | grep -qP "$implicit" && continue
     if grep -q "$pkg" "$import_cache" 2>/dev/null; then
       $VERBOSE && echo "| \`$pkg\` | ✅ Used | Found in imports |"
     else
       echo "| \`$pkg\` | 🔴 Unused | No imports found |"
-      unused_list+=("$pkg"); ((unused++))
+      unused_list+=("$pkg"); (( unused++ )) || true
     fi
   done
   rm -f "$import_cache"

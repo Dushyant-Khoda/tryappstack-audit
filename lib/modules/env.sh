@@ -3,8 +3,8 @@ audit_env() {
   local dir="$1"; local issues=0 checks=0; local pkg="$dir/package.json"
   print_module_header "🛠️" "Environment & Tooling"
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; }
 
   command -v node &>/dev/null && ck_pass "Node.js $(node -v)" || ck_warn "Node.js not found"
   command -v git &>/dev/null && ck_pass "Git installed" || ck_warn "Git not found"

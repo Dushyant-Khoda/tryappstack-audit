@@ -3,9 +3,9 @@ audit_security() {
   local dir="$1"; local issues=0 checks=0
   print_module_header "🔒" "Security Audit"
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); register_issue "Security" "- $1"; }
-  ck_fail() { echo "| 🔴 | $1 |"; ((checks++)); ((issues++)); register_issue "Security" "- $1"; }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; register_issue "Security" "- $1"; }
+  ck_fail() { echo "| 🔴 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; register_issue "Security" "- $1"; }
 
   # .env safety
   local envs=$(find "$dir" -maxdepth 3 -name '.env' -not -path '*/node_modules/*' 2>/dev/null)

@@ -3,8 +3,8 @@ audit_test_coverage() {
   local dir="$1"; local issues=0 checks=0
   print_module_header "🧪" "Test Coverage"
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); register_issue "Tests" "$1"; }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; register_issue "Tests" "$1"; }
 
   local src=$(get_src_dir "$dir")
   local exts=$(get_source_exts); local ea=()
@@ -51,7 +51,7 @@ audit_test_coverage() {
     [[ "$name" == "index" || "$name" == "main" || "$name" == "App" ]] && continue
     if ! find "$dir" -not -path '*/node_modules/*' \( -name "${name}.test.*" -o -name "${name}.spec.*" \) 2>/dev/null | grep -q .; then
       local cat=$(get_file_category "${f#$dir/}")
-      [[ "$cat" == "Page" || "$cat" == "Service" || "$cat" == "Controller" || "$cat" == "Utility" ]] && ((untested++))
+      [[ "$cat" == "Page" || "$cat" == "Service" || "$cat" == "Controller" || "$cat" == "Utility" ]] && (( untested++ )) || true
     fi
   done < <(find "$src" -not -path '*/node_modules/*' -type f \( "${ea[@]}" \) \
     -not -name '*.test.*' -not -name '*.spec.*' -not -name 'index.*' -not -name '*.d.ts' -print0 2>/dev/null)

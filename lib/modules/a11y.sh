@@ -12,8 +12,8 @@ audit_a11y() {
   esac
 
   echo "| Status | Check |"; echo "|--------|-------|"
-  ck_pass() { echo "| ✅ | $1 |"; ((checks++)); }
-  ck_warn() { echo "| 🟡 | $1 |"; ((checks++)); ((issues++)); register_issue "A11y" "$1"; }
+  ck_pass() { echo "| ✅ | $1 |"; (( checks++ )) || true; }
+  ck_warn() { echo "| 🟡 | $1 |"; (( checks++ )) || true; (( issues++ )) || true; register_issue "A11y" "$1"; }
 
   # img without alt
   local img_no_alt=$(find "$src" -not -path '*/node_modules/*' -type f \( -name '*.tsx' -o -name '*.jsx' -o -name '*.vue' \) \
